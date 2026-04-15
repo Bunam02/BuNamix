@@ -8,6 +8,7 @@
   --color-brutal-black: #000000;
   --color-brutal-green: #00FF00;
   --color-brutal-gray: #F0F0F0;
+  --breakpoint-2xl: 2000px;
 }
 
 @layer utilities {

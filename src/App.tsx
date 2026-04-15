@@ -359,9 +359,8 @@ export default function App() {
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             className={cn(
               "flex flex-col items-center justify-center transition-all duration-500",
-              queue.length > 0 
-                ? "gap-2 text-5xl -mt-[10px] -mb-[5px]" 
-                : "gap-4 text-7xl 2xl:text-9xl -mt-[15px] -mb-[20px] 2xl:-mt-[20px] 2xl:-mb-[30px]"
+              queue.length > 0 ? "gap-2 text-5xl -mt-[10px] -mb-[5px]" 
+                : "gap-4 text-6xl 2xl:text-8xl -mt-[15px] -mb-[20px] 2xl:-mt-[20px] 2xl:-mb-[30px]"
             )}
           >
             <a href="./" className="shrink-0 cursor-pointer transition-transform hover:scale-105 active:scale-95">
@@ -370,7 +369,7 @@ export default function App() {
                 alt="BuNaMix Logo" 
                 className={cn(
                   "object-contain transition-all duration-500", 
-                  queue.length > 0 ? "w-[150px] h-[150px]" : "w-[200px] h-[200px] 2xl:w-[300px] 2xl:h-[300px]"
+                  queue.length > 0 ? "w-[150px] h-[150px]" : "w-[180px] h-[180px] 2xl:w-[260px] 2xl:h-[260px]"
                 )} 
               />
             </a>

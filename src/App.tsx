@@ -39,13 +39,13 @@ const QueueComponent = ({
   playSpecificVideo: (index: number) => void 
 }) => (
   <div className="flex flex-col gap-2 flex-1 min-h-0 pt-4 -mt-[17px] overflow-hidden">
-    <div className="text-sm uppercase font-bold tracking-widest border-b-2 border-brutal-black pb-1 flex justify-between items-center shrink-0">
+    <div className="text-sm 2xl:text-lg uppercase font-bold tracking-widest border-b-2 2xl:border-b-4 border-brutal-black pb-1 2xl:pb-2 flex justify-between items-center shrink-0">
       <div className="flex items-center gap-3">
         <span>Up Next</span>
       </div>
-      <span className="bg-brutal-black text-white px-2 py-0.5">{currentIndex + 1} / {queue.length}</span>
+      <span className="bg-brutal-black text-white px-2 py-0.5 2xl:px-3 2xl:py-1">{currentIndex + 1} / {queue.length}</span>
     </div>
-    <div className="flex flex-col gap-3 overflow-y-auto pr-2 custom-scrollbar py-2 flex-1">
+    <div className="flex flex-col gap-3 2xl:gap-4 overflow-y-auto pr-2 custom-scrollbar py-2 flex-1">
       {queue.map((item, index) => {
         if (index < currentIndex) return null;
 
@@ -56,13 +56,13 @@ const QueueComponent = ({
             key={`${item.id}-${index}`}
             onClick={() => playSpecificVideo(index)}
             className={cn(
-              "flex items-center gap-4 p-2 border-2 cursor-pointer transition-all shrink-0",
+              "flex items-center gap-4 2xl:gap-6 p-2 2xl:p-4 border-2 2xl:border-4 cursor-pointer transition-all shrink-0",
               isPlaying 
-                ? "border-brutal-black bg-brutal-green shadow-[4px_4px_0_0_#000]" 
-                : "border-brutal-black bg-white hover:bg-brutal-gray shadow-[4px_4px_0_0_#000]"
+                ? "border-brutal-black bg-brutal-green shadow-[4px_4px_0_0_#000] 2xl:shadow-[6px_6px_0_0_#000]" 
+                : "border-brutal-black bg-white hover:bg-brutal-gray shadow-[4px_4px_0_0_#000] 2xl:shadow-[6px_6px_0_0_#000]"
             )}
           >
-            <div className="w-[100px] h-[56px] bg-brutal-black border-2 border-brutal-black overflow-hidden shrink-0 relative">
+            <div className="w-[100px] h-[56px] 2xl:w-[160px] 2xl:h-[90px] bg-brutal-black border-2 2xl:border-4 border-brutal-black overflow-hidden shrink-0 relative">
               <img 
                 src={item.thumbnail} 
                 alt={item.title}
@@ -70,15 +70,15 @@ const QueueComponent = ({
               />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-bold uppercase truncate">
+              <div className="text-sm 2xl:text-xl font-bold uppercase truncate">
                 {item.title}
               </div>
-              <div className="text-xs font-bold text-brutal-black/60 uppercase truncate">
+              <div className="text-xs 2xl:text-base font-bold text-brutal-black/60 uppercase truncate">
                 {item.channelTitle}
               </div>
             </div>
             <div className={cn(
-              "text-xl font-display shrink-0 px-2",
+              "text-xl 2xl:text-3xl font-display shrink-0 px-2 2xl:px-4",
               isPlaying ? "text-brutal-black" : "text-brutal-black/30"
             )}>
               {isPlaying ? "PLAYING" : `#${index + 1}`}
@@ -330,7 +330,7 @@ export default function App() {
       <div className={cn(
         "flex-1 w-full mx-auto p-4 md:p-8 flex flex-col gap-8 transition-all duration-500",
         queue.length > 0 
-          ? (isSidebarOpen ? "max-w-[1400px] lg:grid lg:grid-cols-[400px_1fr]" : "max-w-[1000px] flex flex-col pl-4") 
+          ? (isSidebarOpen ? "max-w-[1400px] 2xl:max-w-[2000px] lg:grid lg:grid-cols-[400px_1fr] 2xl:grid-cols-[500px_1fr]" : "max-w-[1000px] 2xl:max-w-[1400px] flex flex-col pl-4") 
           : "max-w-[600px] 2xl:max-w-[800px] justify-center"
       )}>
         
@@ -525,33 +525,33 @@ export default function App() {
 
             {/* Player Controls */}
             {currentVideo && (
-              <div className="flex flex-col gap-4 bg-white border-4 border-brutal-black p-4 pt-[13px] pl-4 shadow-[6px_6px_0_0_#000] shrink-0">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex flex-col gap-4 2xl:gap-6 bg-white border-4 border-brutal-black p-4 2xl:p-6 pt-[13px] 2xl:pt-[20px] pl-4 2xl:pl-6 shadow-[6px_6px_0_0_#000] 2xl:shadow-[8px_8px_0_0_#000] shrink-0">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 2xl:gap-8">
                   <div className="flex-1 min-w-0 w-full text-center md:text-left">
-                    <div className="text-xl font-display uppercase truncate">
+                    <div className="text-xl 2xl:text-3xl font-display uppercase truncate">
                       {currentVideo.title}
                     </div>
-                    <div className="text-sm font-bold text-brutal-black/60 uppercase truncate">
+                    <div className="text-sm 2xl:text-xl font-bold text-brutal-black/60 uppercase truncate">
                       {currentVideo.channelTitle}
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 shrink-0 h-[52px] p-0 m-0">
+                  <div className="flex items-center gap-4 2xl:gap-6 shrink-0 h-[52px] 2xl:h-[72px] p-0 m-0">
                     <button 
                       onClick={() => setRepeatMode(prev => prev === 'off' ? 'one' : 'off')}
                       className={cn(
-                        "p-3 border-2 border-brutal-black transition-colors shadow-[2px_2px_0_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+                        "p-3 2xl:p-4 border-2 2xl:border-4 border-brutal-black transition-colors shadow-[2px_2px_0_0_#000] 2xl:shadow-[4px_4px_0_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
                         repeatMode !== 'off' ? "bg-brutal-green text-brutal-black" : "bg-white text-brutal-black hover:bg-brutal-gray"
                       )}
                       title={`Repeat: ${repeatMode}`}
                     >
-                      {repeatMode === 'one' ? <Repeat1 className="w-6 h-6" /> : <Repeat className="w-6 h-6" />}
+                      {repeatMode === 'one' ? <Repeat1 className="w-6 h-6 2xl:w-8 2xl:h-8" /> : <Repeat className="w-6 h-6 2xl:w-8 2xl:h-8" />}
                     </button>
                     <button 
                       onClick={playPrevious}
                       disabled={currentIndex === 0 && repeatMode !== 'all'}
-                      className="p-3 bg-white border-2 border-brutal-black hover:bg-brutal-green disabled:opacity-30 transition-colors shadow-[2px_2px_0_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                      className="p-3 2xl:p-4 bg-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-green disabled:opacity-30 transition-colors shadow-[2px_2px_0_0_#000] 2xl:shadow-[4px_4px_0_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
                     >
-                      <SkipBack className="w-6 h-6" />
+                      <SkipBack className="w-6 h-6 2xl:w-8 2xl:h-8" />
                     </button>
                     <button 
                       onClick={() => {
@@ -561,23 +561,23 @@ export default function App() {
                           playerRef.current?.playVideo();
                         }
                       }}
-                      className="w-[60px] h-[60px] bg-brutal-black text-white border-2 border-brutal-black flex items-center justify-center hover:bg-brutal-green hover:text-brutal-black transition-colors shadow-[4px_4px_0_0_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+                      className="w-[60px] h-[60px] 2xl:w-[80px] 2xl:h-[80px] bg-brutal-black text-white border-2 2xl:border-4 border-brutal-black flex items-center justify-center hover:bg-brutal-green hover:text-brutal-black transition-colors shadow-[4px_4px_0_0_#000] 2xl:shadow-[6px_6px_0_0_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
                     >
-                      {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current ml-1" />}
+                      {isPlaying ? <Pause className="w-8 h-8 2xl:w-10 2xl:h-10 fill-current" /> : <Play className="w-8 h-8 2xl:w-10 2xl:h-10 fill-current ml-1" />}
                     </button>
                     <button 
                       onClick={playNext}
                       disabled={currentIndex === queue.length - 1 && repeatMode !== 'all'}
-                      className="p-3 bg-white border-2 border-brutal-black hover:bg-brutal-green disabled:opacity-30 transition-colors shadow-[2px_2px_0_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                      className="p-3 2xl:p-4 bg-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-green disabled:opacity-30 transition-colors shadow-[2px_2px_0_0_#000] 2xl:shadow-[4px_4px_0_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
                     >
-                      <SkipForward className="w-6 h-6" />
+                      <SkipForward className="w-6 h-6 2xl:w-8 2xl:h-8" />
                     </button>
                   </div>
                 </div>
                 
                 {/* Progress Bar */}
-                <div className="flex items-center gap-3 w-full">
-                  <span className="text-sm font-bold font-mono w-12 text-right shrink-0">{formatTime(currentTime)}</span>
+                <div className="flex items-center gap-3 2xl:gap-5 w-full">
+                  <span className="text-sm 2xl:text-lg font-bold font-mono w-12 2xl:w-16 text-right shrink-0">{formatTime(currentTime)}</span>
                   <input
                     type="range"
                     min={0}
@@ -593,9 +593,9 @@ export default function App() {
                     style={{
                       background: `linear-gradient(to right, #89d07e ${(currentTime / (duration || 100)) * 100}%, #e5e7eb ${(currentTime / (duration || 100)) * 100}%)`
                     }}
-                    className="flex-1 h-4 border-2 border-brutal-black appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:bg-brutal-black [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-brutal-black active:[&::-webkit-slider-thumb]:bg-brutal-black"
+                    className="flex-1 h-4 2xl:h-6 border-2 2xl:border-4 border-brutal-black appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 2xl:[&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 2xl:[&::-webkit-slider-thumb]:h-8 [&::-webkit-slider-thumb]:bg-brutal-black [&::-webkit-slider-thumb]:border-2 2xl:[&::-webkit-slider-thumb]:border-4 [&::-webkit-slider-thumb]:border-brutal-black active:[&::-webkit-slider-thumb]:bg-brutal-black"
                   />
-                  <span className="text-sm font-bold font-mono w-12 shrink-0">{formatTime(duration)}</span>
+                  <span className="text-sm 2xl:text-lg font-bold font-mono w-12 2xl:w-16 shrink-0">{formatTime(duration)}</span>
                 </div>
               </div>
             )}

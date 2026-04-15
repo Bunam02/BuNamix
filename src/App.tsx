@@ -331,12 +331,13 @@ export default function App() {
         "flex-1 w-full mx-auto p-4 md:p-8 flex flex-col gap-8 transition-all duration-500",
         queue.length > 0 
           ? (isSidebarOpen ? "max-w-[1400px] lg:grid lg:grid-cols-[400px_1fr]" : "max-w-[1000px] flex flex-col pl-4") 
-          : "max-w-[600px] justify-center"
+          : "max-w-[600px] 2xl:max-w-[800px] justify-center"
       )}>
         
         {/* Sidebar */}
         <div className={cn(
-          "flex-col gap-4 w-full relative lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)]",
+          "flex-col w-full relative",
+          queue.length > 0 ? "gap-4 lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)]" : "gap-6 2xl:gap-10",
           (!queue.length || isSidebarOpen) ? "flex" : "hidden"
         )}>
           {/* Toggle Sidebar Button (When Open) */}
@@ -360,7 +361,7 @@ export default function App() {
               "flex flex-col items-center justify-center transition-all duration-500",
               queue.length > 0 
                 ? "gap-2 text-5xl -mt-[10px] -mb-[5px]" 
-                : "gap-4 text-7xl -mt-[15px] -mb-[20px]"
+                : "gap-4 text-7xl 2xl:text-9xl -mt-[15px] -mb-[20px] 2xl:-mt-[20px] 2xl:-mb-[30px]"
             )}
           >
             <a href="./" className="shrink-0 cursor-pointer transition-transform hover:scale-105 active:scale-95">
@@ -369,13 +370,13 @@ export default function App() {
                 alt="BuNaMix Logo" 
                 className={cn(
                   "object-contain transition-all duration-500", 
-                  queue.length > 0 ? "w-[150px] h-[150px]" : "w-[200px] h-[200px]"
+                  queue.length > 0 ? "w-[150px] h-[150px]" : "w-[200px] h-[200px] 2xl:w-[300px] 2xl:h-[300px]"
                 )} 
               />
             </a>
             <span className={cn(
               "font-display leading-none tracking-tight flex items-center justify-center transition-all duration-500", 
-              queue.length > 0 ? "-mt-[20px] h-[50px]" : "-mt-[35px] h-[70px]"
+              queue.length > 0 ? "-mt-[20px] h-[50px]" : "-mt-[35px] h-[70px] 2xl:-mt-[50px] 2xl:h-[100px]"
             )}>
               BuNa<span style={{ color: '#89d07e' }}>Mix</span>
             </span>
@@ -383,30 +384,30 @@ export default function App() {
           
           {/* Add Playlist */}
           {queue.length === 0 && (
-            <div className="flex flex-col gap-2">
-              <div className="text-sm uppercase font-bold tracking-widest border-b-2 border-brutal-black pb-1">
+            <div className="flex flex-col gap-2 2xl:gap-4 w-full">
+              <div className="text-sm 2xl:text-xl uppercase font-bold tracking-widest border-b-2 2xl:border-b-4 border-brutal-black pb-1 2xl:pb-2">
                 Add Playlists
               </div>
-              <form onSubmit={handleAddPlaylist} className="flex gap-2 mt-2">
+              <form onSubmit={handleAddPlaylist} className="flex gap-2 2xl:gap-4 mt-2 2xl:mt-4">
                 <input
                   type="text"
                   placeholder="www.youtube.com/playlist?list="
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  className="flex-1 bg-white border-2 border-brutal-black p-3 text-brutal-black font-bold text-sm outline-none focus:bg-brutal-gray transition-colors placeholder:text-brutal-black/40 shadow-[4px_4px_0_0_#000]"
+                  className="flex-1 bg-white border-2 2xl:border-4 border-brutal-black p-3 2xl:p-5 text-brutal-black font-bold text-sm 2xl:text-xl outline-none focus:bg-brutal-gray transition-colors placeholder:text-brutal-black/40 shadow-[4px_4px_0_0_#000] 2xl:shadow-[6px_6px_0_0_#000]"
                   disabled={isLoading}
                 />
                 <button
                   type="submit"
                   disabled={isLoading || !inputValue.trim()}
-                  className="bg-white border-2 border-brutal-black text-brutal-black px-4 hover:bg-brutal-green disabled:opacity-50 transition-colors flex items-center justify-center shrink-0 shadow-[4px_4px_0_0_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+                  className="bg-white border-2 2xl:border-4 border-brutal-black text-brutal-black px-4 2xl:px-8 hover:bg-brutal-green disabled:opacity-50 transition-colors flex items-center justify-center shrink-0 shadow-[4px_4px_0_0_#000] 2xl:shadow-[6px_6px_0_0_#000] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
                 >
-                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-6 h-6 stroke-[3]" />}
+                  {isLoading ? <Loader2 className="w-5 h-5 2xl:w-8 2xl:h-8 animate-spin" /> : <Plus className="w-6 h-6 2xl:w-8 2xl:h-8 stroke-[3]" />}
                 </button>
               </form>
               {error && (
-                <div className="bg-brutal-black text-white p-2 text-sm font-bold mt-2 uppercase flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 shrink-0" />
+                <div className="bg-brutal-black text-white p-2 2xl:p-4 text-sm 2xl:text-lg font-bold mt-2 2xl:mt-4 uppercase flex items-start gap-2 2xl:gap-3">
+                  <AlertCircle className="w-5 h-5 2xl:w-7 2xl:h-7 shrink-0" />
                   <p>{error}</p>
                 </div>
               )}
@@ -415,14 +416,14 @@ export default function App() {
 
           {/* Playlists List */}
           {queue.length === 0 && (
-            <div className="flex flex-col gap-2 shrink-0 max-h-[260px]">
-              <div className="text-sm uppercase font-bold tracking-widest border-b-2 border-brutal-black pb-1 flex justify-between items-center shrink-0">
+            <div className="flex flex-col gap-2 2xl:gap-4 shrink-0 max-h-[260px] 2xl:max-h-[400px] w-full">
+              <div className="text-sm 2xl:text-xl uppercase font-bold tracking-widest border-b-2 2xl:border-b-4 border-brutal-black pb-1 2xl:pb-2 flex justify-between items-center shrink-0">
                 <span>Your Playlists</span>
-                <span className="bg-brutal-black text-white px-2 py-0.5">{playlists.length}</span>
+                <span className="bg-brutal-black text-white px-2 py-0.5 2xl:px-3 2xl:py-1">{playlists.length}</span>
               </div>
-              <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar py-2 flex-1 min-h-0">
+              <div className="space-y-3 2xl:space-y-4 overflow-y-auto pr-2 custom-scrollbar py-2 flex-1 min-h-0">
                 {playlists.length === 0 ? (
-                  <div className="text-center py-8 text-brutal-black font-bold uppercase border-2 border-dashed border-brutal-black bg-brutal-gray">
+                  <div className="text-center py-8 2xl:py-12 text-brutal-black font-bold uppercase border-2 2xl:border-4 border-dashed border-brutal-black bg-brutal-gray 2xl:text-xl">
                     NO PLAYLISTS ADDED.
                   </div>
                 ) : (
@@ -430,28 +431,28 @@ export default function App() {
                     <div 
                       key={playlist.id} 
                       onClick={() => handleShuffleAndPlay(playlist.id)}
-                      className="flex items-center gap-3 bg-white border-2 border-brutal-black p-2 group transition-colors hover:bg-brutal-gray shadow-[4px_4px_0_0_#000] cursor-pointer"
+                      className="flex items-center gap-3 2xl:gap-5 bg-white border-2 2xl:border-4 border-brutal-black p-2 2xl:p-4 group transition-colors hover:bg-brutal-gray shadow-[4px_4px_0_0_#000] 2xl:shadow-[6px_6px_0_0_#000] cursor-pointer"
                     >
                       <img 
                         src={playlist.thumbnail} 
                         alt={playlist.title} 
-                        className="w-16 h-12 object-cover border-2 border-brutal-black shrink-0 transition-all"
+                        className="w-16 h-12 2xl:w-24 2xl:h-16 object-cover border-2 2xl:border-4 border-brutal-black shrink-0 transition-all"
                       />
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold uppercase truncate" title={playlist.title}>
+                        <h3 className="text-sm 2xl:text-xl font-bold uppercase truncate" title={playlist.title}>
                           {playlist.title}
                         </h3>
-                        <p className="text-xs font-bold text-brutal-black/60">{playlist.itemCount} VIDEOS</p>
+                        <p className="text-xs 2xl:text-sm font-bold text-brutal-black/60">{playlist.itemCount} VIDEOS</p>
                       </div>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleRemovePlaylist(playlist.id);
                         }}
-                        className="p-2 text-brutal-black hover:bg-brutal-black hover:text-white border-2 border-transparent hover:border-brutal-black transition-colors shrink-0"
+                        className="p-2 2xl:p-3 text-brutal-black hover:bg-brutal-black hover:text-white border-2 2xl:border-4 border-transparent hover:border-brutal-black transition-colors shrink-0"
                         title="Remove playlist"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-5 h-5 2xl:w-7 2xl:h-7" />
                       </button>
                     </div>
                   ))

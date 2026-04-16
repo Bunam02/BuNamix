@@ -1,4 +1,4 @@
-const API_KEY = 'AIzaSyCQ5twwzCSe1NKL14MQBmOa8LJx_7rPzsU';
+const API_KEY = 'AIzaSyAld-Dq-5ulLHHVv5UoLj5KHxJxasQ4GtA';
 
 export interface PlaylistItem {
   id: string;
@@ -23,7 +23,8 @@ export async function fetchPlaylistInfo(playlistId: string): Promise<PlaylistInf
   const data = await response.json();
 
   if (data.error) {
-    throw new Error(data.error.message);
+    console.error('YouTube API Error:', data.error);
+    throw new Error(data.error.message || 'Unknown YouTube API error');
   }
 
   if (!data.items || data.items.length === 0) {
@@ -34,7 +35,7 @@ export async function fetchPlaylistInfo(playlistId: string): Promise<PlaylistInf
   return {
     id: item.id,
     title: item.snippet.title,
-    thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
+    thumbnail: item.snippet.thumbnails?.maxres?.url || item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
     itemCount: item.contentDetails.itemCount,
   };
 }
@@ -52,7 +53,8 @@ export async function fetchPlaylistItems(playlistId: string): Promise<PlaylistIt
       const data = await response.json();
 
       if (data.error) {
-        throw new Error(data.error.message);
+        console.error('YouTube API Error:', data.error);
+        throw new Error(data.error.message || 'Unknown YouTube API error');
       }
 
       const fetchedItems = data.items
@@ -65,7 +67,7 @@ export async function fetchPlaylistItems(playlistId: string): Promise<PlaylistIt
           id: item.id,
           videoId: item.snippet.resourceId.videoId,
           title: item.snippet.title,
-          thumbnail: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
+          thumbnail: item.snippet.thumbnails?.maxres?.url || item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url || '',
           channelTitle: item.snippet.videoOwnerChannelTitle || item.snippet.channelTitle || 'Unknown Channel',
           playlistId: playlistId
         }));

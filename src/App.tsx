@@ -8,14 +8,15 @@ import YouTube, { YouTubeProps } from 'react-youtube';
 import { 
   Play, Shuffle, Trash2, Plus, ListVideo, 
   SkipForward, SkipBack, Loader2, AlertCircle,
-  Volume2, Pause, Repeat, Repeat1, PanelLeftClose, PanelLeftOpen, Moon, Maximize
+  Volume2, Pause, Repeat, Repeat1, PanelLeftClose, PanelLeftOpen, Moon, Maximize, Mouse, Settings, Radio, MoreVertical,
+  X, Heart, Cast, AudioLines
 } from 'lucide-react';
 import { 
   fetchPlaylistInfo, fetchPlaylistItems, extractPlaylistId, 
   shuffleArray, PlaylistItem, PlaylistInfo 
 } from './lib/youtube';
 import { cn } from './lib/utils';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 
 const formatTime = (time: number) => {
   if (!time || isNaN(time)) return "0:00";
@@ -118,6 +119,13 @@ export default function App() {
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [volume, setVolume] = useState(100);
   const [showVolumeIndicator, setShowVolumeIndicator] = useState(false);
+  const [isOverlayEnabled, setIsOverlayEnabled] = useState(() => {
+    const saved = localStorage.getItem('isOverlayEnabled');
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isRadioMode, setIsRadioMode] = useState(false);
+  const [isRadioShaking, setIsRadioShaking] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const saved = localStorage.getItem('theme');
     return (saved as 'light' | 'dark') || 'light';
@@ -133,9 +141,14 @@ export default function App() {
   const overlayRef = useRef<HTMLDivElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
   
+  // Save isOverlayEnabled to localStorage
+  useEffect(() => {
+    localStorage.setItem('isOverlayEnabled', JSON.stringify(isOverlayEnabled));
+  }, [isOverlayEnabled]);
+
   useEffect(() => {
     const overlay = overlayRef.current;
-    if (!overlay) return;
+    if (!overlay || !isOverlayEnabled) return;
 
     const handleNativeWheel = (e: WheelEvent) => {
       e.preventDefault(); // Prevent page scroll
@@ -163,7 +176,7 @@ export default function App() {
     return () => {
       overlay.removeEventListener('wheel', handleNativeWheel);
     };
-  }, [queue.length, initialVideoId]);
+  }, [queue.length, initialVideoId, isOverlayEnabled]);
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
@@ -573,7 +586,10 @@ export default function App() {
             {/* Player Area Wrapper */}
             <div className="flex flex-col gap-4 2xl:gap-6 w-full relative">
               {/* Player Mockup */}
-              <div ref={videoContainerRef} className="w-full aspect-video bg-brutal-black border-4 border-brutal-black flex items-center justify-center relative overflow-hidden shadow-[8px_8px_0_0_var(--color-brutal-black)]">
+              <div ref={videoContainerRef} className={cn(
+                "w-full bg-brutal-black border-4 border-brutal-black flex items-center justify-center relative overflow-hidden shadow-[8px_8px_0_0_var(--color-brutal-black)]",
+                isRadioMode ? "absolute w-[1px] h-[1px] opacity-0 pointer-events-none -z-50" : "aspect-video"
+              )}>
                 {/* ⭐️ 변경: queue가 있고 initialVideoId가 세팅되었을 때만 렌더링 */}
                 {queue.length > 0 && initialVideoId ? (
                   <>
@@ -594,18 +610,20 @@ export default function App() {
                       iframeClassName="w-full h-full"
                     />
                     {/* Overlay to capture wheel events over iframe (centered to avoid blocking YT controls) */}
-                    <div 
-                      ref={overlayRef}
-                      className="absolute top-[60px] left-0 right-0 bottom-[60px] z-10 cursor-pointer"
-                      onClick={() => {
-                        if (isPlaying) {
-                          playerRef.current?.pauseVideo();
-                        } else {
-                          playerRef.current?.playVideo();
-                        }
-                      }}
-                      onDoubleClick={toggleFullscreen}
-                    />
+                    {isOverlayEnabled && (
+                      <div 
+                        ref={overlayRef}
+                        className="absolute top-[60px] left-0 right-0 bottom-[60px] z-10 cursor-pointer"
+                        onClick={() => {
+                          if (isPlaying) {
+                            playerRef.current?.pauseVideo();
+                          } else {
+                            playerRef.current?.playVideo();
+                          }
+                        }}
+                        onDoubleClick={toggleFullscreen}
+                      />
+                    )}
                     {/* Volume Indicator Overlay */}
                     {showVolumeIndicator && (
                       <div className="absolute top-[10%] left-1/2 -translate-x-1/2 pointer-events-none z-50 bg-black/70 px-4 py-2 rounded text-white shadow-md">
@@ -623,89 +641,91 @@ export default function App() {
                 )}
               </div>
 
-              {/* Player Controls */}
-              {currentVideo && (
-                <div className="flex flex-col gap-4 2xl:gap-6 bg-brutal-white border-4 border-brutal-black p-4 2xl:p-6 pt-[13px] 2xl:pt-[20px] pl-4 2xl:pl-6 shadow-[6px_6px_0_0_var(--color-brutal-black)] 2xl:shadow-[8px_8px_0_0_var(--color-brutal-black)] shrink-0">
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-4 2xl:gap-8">
-                  <div className="flex-1 min-w-0 w-full text-center md:text-left">
-                    <div className="text-xl 2xl:text-3xl font-display uppercase truncate">
-                      {currentVideo.title}
-                    </div>
-                    <div className="text-sm 2xl:text-xl font-bold text-brutal-black/60 uppercase truncate">
-                      {currentVideo.channelTitle}
+              {/* Normal Player Controls */}
+              {!isRadioMode && currentVideo && (
+                <>
+                  <div className="flex flex-col gap-4 2xl:gap-6 bg-brutal-white border-4 border-brutal-black p-4 2xl:p-6 pt-[13px] 2xl:pt-[20px] pl-4 2xl:pl-6 shadow-[6px_6px_0_0_var(--color-brutal-black)] 2xl:shadow-[8px_8px_0_0_var(--color-brutal-black)] shrink-0">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4 2xl:gap-8">
+                      <div className="flex-1 min-w-0 w-full text-center md:text-left">
+                        <div className="text-xl 2xl:text-3xl font-display uppercase truncate">
+                          {currentVideo.title}
+                        </div>
+                        <div className="text-sm 2xl:text-xl font-bold text-brutal-black/60 uppercase truncate">
+                          {currentVideo.channelTitle}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 2xl:gap-6 shrink-0 h-[52px] 2xl:h-[72px] p-0 m-0">
+                        <button 
+                          onClick={handleShuffle}
+                          className="p-3 2xl:p-4 bg-brutal-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-green transition-colors shadow-[2px_2px_0_0_var(--color-brutal-black)] 2xl:shadow-[4px_4px_0_0_var(--color-brutal-black)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                          title="Shuffle Playlist"
+                        >
+                          <Shuffle className="w-6 h-6 2xl:w-8 2xl:h-8" />
+                        </button>
+                        <button 
+                          onClick={() => setRepeatMode(prev => prev === 'off' ? 'one' : 'off')}
+                          className={cn(
+                            "p-3 2xl:p-4 border-2 2xl:border-4 border-brutal-black transition-colors shadow-[2px_2px_0_0_var(--color-brutal-black)] 2xl:shadow-[4px_4px_0_0_var(--color-brutal-black)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+                            repeatMode !== 'off' ? "bg-brutal-green text-brutal-black" : "bg-brutal-white text-brutal-black hover:bg-brutal-gray"
+                          )}
+                          title={`Repeat: ${repeatMode}`}
+                        >
+                          {repeatMode === 'one' ? <Repeat1 className="w-6 h-6 2xl:w-8 2xl:h-8" /> : <Repeat className="w-6 h-6 2xl:w-8 2xl:h-8" />}
+                        </button>
+                        <button 
+                          onClick={playPrevious}
+                          disabled={currentIndex === 0 && repeatMode !== 'all'}
+                          className="p-3 2xl:p-4 bg-brutal-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-green disabled:opacity-30 transition-colors shadow-[2px_2px_0_0_var(--color-brutal-black)] 2xl:shadow-[4px_4px_0_0_var(--color-brutal-black)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                        >
+                          <SkipBack className="w-6 h-6 2xl:w-8 2xl:h-8" />
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if (isPlaying) {
+                              playerRef.current?.pauseVideo();
+                            } else {
+                              playerRef.current?.playVideo();
+                            }
+                          }}
+                          className="w-[60px] h-[60px] 2xl:w-[80px] 2xl:h-[80px] bg-brutal-white text-brutal-black border-2 2xl:border-4 border-brutal-black flex items-center justify-center hover:bg-brutal-green transition-colors shadow-[4px_4px_0_0_var(--color-brutal-black)] 2xl:shadow-[6px_6px_0_0_var(--color-brutal-black)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
+                        >
+                          {isPlaying ? <Pause className="w-8 h-8 2xl:w-10 2xl:h-10 fill-current" /> : <Play className="w-8 h-8 2xl:w-10 2xl:h-10 fill-current ml-1" />}
+                        </button>
+                        <button 
+                          onClick={playNext}
+                          disabled={currentIndex === queue.length - 1 && repeatMode !== 'all'}
+                          className="p-3 2xl:p-4 bg-brutal-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-green disabled:opacity-30 transition-colors shadow-[2px_2px_0_0_var(--color-brutal-black)] 2xl:shadow-[4px_4px_0_0_var(--color-brutal-black)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                        >
+                          <SkipForward className="w-6 h-6 2xl:w-8 2xl:h-8" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 2xl:gap-6 shrink-0 h-[52px] 2xl:h-[72px] p-0 m-0">
-                    <button 
-                      onClick={handleShuffle}
-                      className="p-3 2xl:p-4 bg-brutal-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-green transition-colors shadow-[2px_2px_0_0_var(--color-brutal-black)] 2xl:shadow-[4px_4px_0_0_var(--color-brutal-black)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-                      title="Shuffle Playlist"
-                    >
-                      <Shuffle className="w-6 h-6 2xl:w-8 2xl:h-8" />
-                    </button>
-                    <button 
-                      onClick={() => setRepeatMode(prev => prev === 'off' ? 'one' : 'off')}
-                      className={cn(
-                        "p-3 2xl:p-4 border-2 2xl:border-4 border-brutal-black transition-colors shadow-[2px_2px_0_0_var(--color-brutal-black)] 2xl:shadow-[4px_4px_0_0_var(--color-brutal-black)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
-                        repeatMode !== 'off' ? "bg-brutal-green text-brutal-black" : "bg-brutal-white text-brutal-black hover:bg-brutal-gray"
-                      )}
-                      title={`Repeat: ${repeatMode}`}
-                    >
-                      {repeatMode === 'one' ? <Repeat1 className="w-6 h-6 2xl:w-8 2xl:h-8" /> : <Repeat className="w-6 h-6 2xl:w-8 2xl:h-8" />}
-                    </button>
-                    <button 
-                      onClick={playPrevious}
-                      disabled={currentIndex === 0 && repeatMode !== 'all'}
-                      className="p-3 2xl:p-4 bg-brutal-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-green disabled:opacity-30 transition-colors shadow-[2px_2px_0_0_var(--color-brutal-black)] 2xl:shadow-[4px_4px_0_0_var(--color-brutal-black)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-                    >
-                      <SkipBack className="w-6 h-6 2xl:w-8 2xl:h-8" />
-                    </button>
-                    <button 
-                      onClick={() => {
-                        if (isPlaying) {
-                          playerRef.current?.pauseVideo();
-                        } else {
-                          playerRef.current?.playVideo();
+                  
+                  {/* Progress Bar */}
+                  <div className="flex items-center gap-3 2xl:gap-5 w-full">
+                    <span className="text-sm 2xl:text-lg font-bold font-mono w-12 2xl:w-16 text-right shrink-0">{formatTime(currentTime)}</span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={duration || 100}
+                      value={currentTime}
+                      onChange={(e) => {
+                        const newTime = Number(e.target.value);
+                        setCurrentTime(newTime);
+                        if (playerRef.current) {
+                          playerRef.current.seekTo(newTime, true);
                         }
                       }}
-                      className="w-[60px] h-[60px] 2xl:w-[80px] 2xl:h-[80px] bg-brutal-white text-brutal-black border-2 2xl:border-4 border-brutal-black flex items-center justify-center hover:bg-brutal-green transition-colors shadow-[4px_4px_0_0_var(--color-brutal-black)] 2xl:shadow-[6px_6px_0_0_var(--color-brutal-black)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
-                    >
-                      {isPlaying ? <Pause className="w-8 h-8 2xl:w-10 2xl:h-10 fill-current" /> : <Play className="w-8 h-8 2xl:w-10 2xl:h-10 fill-current ml-1" />}
-                    </button>
-                    <button 
-                      onClick={playNext}
-                      disabled={currentIndex === queue.length - 1 && repeatMode !== 'all'}
-                      className="p-3 2xl:p-4 bg-brutal-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-green disabled:opacity-30 transition-colors shadow-[2px_2px_0_0_var(--color-brutal-black)] 2xl:shadow-[4px_4px_0_0_var(--color-brutal-black)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-                    >
-                      <SkipForward className="w-6 h-6 2xl:w-8 2xl:h-8" />
-                    </button>
+                      style={{
+                        background: `linear-gradient(to right, #89d07e ${(currentTime / (duration || 100)) * 100}%, #e5e7eb ${(currentTime / (duration || 100)) * 100}%)`
+                      }}
+                      className="flex-1 h-4 2xl:h-6 border-2 2xl:border-4 border-brutal-black appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 2xl:[&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 2xl:[&::-webkit-slider-thumb]:h-8 [&::-webkit-slider-thumb]:bg-brutal-black [&::-webkit-slider-thumb]:border-2 2xl:[&::-webkit-slider-thumb]:border-4 [&::-webkit-slider-thumb]:border-brutal-black active:[&::-webkit-slider-thumb]:bg-brutal-black"
+                    />
+                    <span className="text-sm 2xl:text-lg font-bold font-mono w-12 2xl:w-16 shrink-0">{formatTime(duration)}</span>
                   </div>
-                </div>
-                
-                {/* Progress Bar */}
-                <div className="flex items-center gap-3 2xl:gap-5 w-full">
-                  <span className="text-sm 2xl:text-lg font-bold font-mono w-12 2xl:w-16 text-right shrink-0">{formatTime(currentTime)}</span>
-                  <input
-                    type="range"
-                    min={0}
-                    max={duration || 100}
-                    value={currentTime}
-                    onChange={(e) => {
-                      const newTime = Number(e.target.value);
-                      setCurrentTime(newTime);
-                      if (playerRef.current) {
-                        playerRef.current.seekTo(newTime, true);
-                      }
-                    }}
-                    style={{
-                      background: `linear-gradient(to right, #89d07e ${(currentTime / (duration || 100)) * 100}%, #e5e7eb ${(currentTime / (duration || 100)) * 100}%)`
-                    }}
-                    className="flex-1 h-4 2xl:h-6 border-2 2xl:border-4 border-brutal-black appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 2xl:[&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 2xl:[&::-webkit-slider-thumb]:h-8 [&::-webkit-slider-thumb]:bg-brutal-black [&::-webkit-slider-thumb]:border-2 2xl:[&::-webkit-slider-thumb]:border-4 [&::-webkit-slider-thumb]:border-brutal-black active:[&::-webkit-slider-thumb]:bg-brutal-black"
-                  />
-                  <span className="text-sm 2xl:text-lg font-bold font-mono w-12 2xl:w-16 shrink-0">{formatTime(duration)}</span>
-                </div>
-              </div>
-            )}
+                </>
+              )}
             </div>
 
             {/* Queue (Shown below player when sidebar is closed) */}
@@ -718,20 +738,191 @@ export default function App() {
                 />
               </div>
             )}
-
-
           </div>
         )}
       </div>
       
-      {/* Theme Toggle Button */}
-      <button
-        onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
-        className="fixed bottom-4 right-4 2xl:bottom-8 2xl:right-8 p-2 2xl:p-3 bg-brutal-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-gray transition-colors z-50 rounded-full"
-        title="Toggle Theme"
-      >
-        <Moon className="w-5 h-5 2xl:w-6 2xl:h-6 text-brutal-black" />
-      </button>
+      {/* Settings Menu */}
+      <AnimatePresence>
+        {!isRadioMode && isSettingsOpen && (
+          <>
+            {/* Backdrop to close settings when clicking outside */}
+            <div 
+              className="fixed inset-0 z-40" 
+              onClick={() => setIsSettingsOpen(false)} 
+            />
+            <motion.div 
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="fixed bottom-16 right-4 2xl:bottom-24 2xl:right-8 z-50 bg-black/80 backdrop-blur-md rounded-xl p-5 shadow-2xl border border-white/10 w-[340px]"
+            >
+              <div className="grid grid-cols-3 gap-x-3 gap-y-4">
+                
+                {/* Dark Mode Toggle */}
+                <div className="flex flex-col items-center gap-2">
+                  <button
+                    onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+                    className={cn(
+                      "w-full h-12 rounded-lg flex items-center justify-center transition-colors",
+                      theme === 'dark' ? "bg-[#4cc2ff] text-black" : "bg-white/10 text-white hover:bg-white/20 border border-white/10"
+                    )}
+                  >
+                    <Moon className="w-5 h-5" />
+                  </button>
+                  <span className="text-xs text-white font-medium">다크 모드</span>
+                </div>
+
+                {/* Wheel Volume Toggle */}
+                <div className="flex flex-col items-center gap-2">
+                  <button
+                    onClick={() => setIsOverlayEnabled(prev => !prev)}
+                    className={cn(
+                      "w-full h-12 rounded-lg flex items-center justify-center transition-colors",
+                      isOverlayEnabled ? "bg-[#4cc2ff] text-black" : "bg-white/10 text-white hover:bg-white/20 border border-white/10"
+                    )}
+                  >
+                    <Mouse className="w-5 h-5" />
+                  </button>
+                  <span className="text-xs text-white font-medium">휠 볼륨</span>
+                </div>
+
+                {/* Radio Mode Toggle */}
+                <div className="flex flex-col items-center gap-2">
+                  <motion.button
+                    animate={isRadioShaking ? { x: [-5, 5, -5, 5, 0] } : {}}
+                    transition={{ duration: 0.3 }}
+                    onClick={() => {
+                      if (queue.length === 0) {
+                        setIsRadioShaking(true);
+                        setTimeout(() => setIsRadioShaking(false), 300);
+                        return;
+                      }
+                      setIsRadioMode(prev => !prev);
+                    }}
+                    className={cn(
+                      "w-full h-12 rounded-lg flex items-center justify-center transition-colors",
+                      isRadioMode ? "bg-[#4cc2ff] text-black" : "bg-white/10 text-white hover:bg-white/20 border border-white/10"
+                    )}
+                  >
+                    <Radio className="w-5 h-5" />
+                  </motion.button>
+                  <span className="text-xs text-white font-medium">라디오 모드</span>
+                </div>
+
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Settings Toggle Button */}
+      {!isRadioMode && (
+        <button
+          onClick={() => setIsSettingsOpen(prev => !prev)}
+          className="fixed bottom-4 right-4 2xl:bottom-8 2xl:right-8 p-2 2xl:p-3 bg-brutal-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-gray transition-colors z-50 rounded-full"
+          title="Settings"
+        >
+          <Settings className="w-5 h-5 2xl:w-6 2xl:h-6 text-brutal-black" />
+        </button>
+      )}
+
+      {/* Full-Screen Radio Mode Overlay */}
+      {isRadioMode && currentVideo && (
+        <div className="fixed inset-0 z-[100] flex flex-col items-center bg-white overflow-hidden font-sans">
+          {/* Blurred Background */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center opacity-40 blur-[60px] scale-110"
+            style={{ backgroundImage: `url(${currentVideo.thumbnail})` }}
+          />
+          {/* Gradient Overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/80" />
+
+          {/* Main Content */}
+          <div className="relative z-10 w-full max-w-[360px] md:max-w-[420px] lg:max-w-[460px] h-full flex flex-col px-6 py-6 md:py-8 lg:py-10 justify-center">
+            {/* Top Bar */}
+            <div className="flex justify-center items-center w-full text-white/90 mb-6 md:mb-8 lg:mb-10">
+              <button onClick={() => setIsRadioMode(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                <X className="w-8 h-8" />
+              </button>
+            </div>
+
+            {/* Thumbnail */}
+            <div className="w-full aspect-square rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] mb-6 md:mb-8 lg:mb-10">
+              <img src={currentVideo.thumbnail} alt={currentVideo.title} className="w-full h-full object-cover" />
+            </div>
+
+            {/* Info */}
+            <div className="flex flex-col items-center text-center mb-6 md:mb-8 w-full">
+              <div className="w-full overflow-hidden relative mb-1 md:mb-2 py-1">
+                <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-white animate-marquee leading-normal">
+                  {currentVideo.title}
+                </h2>
+              </div>
+              <p className="text-xs md:text-sm lg:text-base text-white/60 font-medium line-clamp-1 px-2">{currentVideo.channelTitle}</p>
+            </div>
+
+            {/* Progress */}
+            <div className="w-full flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
+              <span className="text-xs md:text-sm text-white/60 font-medium w-10 text-right shrink-0">{formatTime(currentTime)}</span>
+              <div className="relative flex-1 h-1.5 md:h-2 bg-white/20 rounded-full flex items-center group cursor-pointer">
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 100}
+                  value={currentTime}
+                  onChange={(e) => {
+                    const newTime = Number(e.target.value);
+                    setCurrentTime(newTime);
+                    if (playerRef.current) {
+                      playerRef.current.seekTo(newTime, true);
+                    }
+                  }}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                />
+                {/* Filled track */}
+                <div 
+                  className="absolute h-full bg-white rounded-full pointer-events-none" 
+                  style={{ width: `${(currentTime / (duration || 100)) * 100}%` }} 
+                />
+                {/* Thumb */}
+                <div 
+                  className="absolute w-3 h-3 md:w-4 md:h-4 bg-white rounded-full shadow-lg pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" 
+                  style={{ left: `calc(${(currentTime / (duration || 100)) * 100}% - 6px)` }} 
+                />
+              </div>
+              <span className="text-xs md:text-sm text-white/60 font-medium w-10 shrink-0">{formatTime(duration)}</span>
+            </div>
+
+            {/* Controls */}
+            <div className="w-full flex justify-center items-center px-2 md:px-6 mb-6 md:mb-10">
+              <div className="flex items-center gap-6 md:gap-8 lg:gap-10">
+                <button onClick={playPrevious} className="text-white transition-colors active:scale-95">
+                  <SkipBack className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 fill-current" />
+                </button>
+                <button 
+                  onClick={() => {
+                    if (isPlaying) playerRef.current?.pauseVideo();
+                    else playerRef.current?.playVideo();
+                  }} 
+                  className="text-white transition-transform active:scale-95"
+                >
+                  {isPlaying ? <Pause className="w-10 h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 fill-current" /> : <Play className="w-10 h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 fill-current ml-1" />}
+                </button>
+                <button onClick={playNext} className="text-white transition-colors active:scale-95">
+                  <SkipForward className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 fill-current" />
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Lyrics/Wave */}
+            <div className="mt-auto flex flex-col items-center gap-4 pb-6">
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }

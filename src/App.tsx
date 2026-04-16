@@ -679,13 +679,6 @@ export default function App() {
                     >
                       <SkipForward className="w-6 h-6 2xl:w-8 2xl:h-8" />
                     </button>
-                    <button 
-                      onClick={toggleFullscreen}
-                      className="p-3 2xl:p-4 bg-brutal-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-green transition-colors shadow-[2px_2px_0_0_var(--color-brutal-black)] 2xl:shadow-[4px_4px_0_0_var(--color-brutal-black)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hidden md:block"
-                      title="Fullscreen"
-                    >
-                      <Maximize className="w-6 h-6 2xl:w-8 2xl:h-8" />
-                    </button>
                   </div>
                 </div>
                 

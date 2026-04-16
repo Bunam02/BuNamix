@@ -8,7 +8,7 @@ import YouTube, { YouTubeProps } from 'react-youtube';
 import { 
   Play, Shuffle, Trash2, Plus, ListVideo, 
   SkipForward, SkipBack, Loader2, AlertCircle,
-  Volume2, Pause, Repeat, Repeat1, PanelLeftClose, PanelLeftOpen, Moon
+  Volume2, Pause, Repeat, Repeat1, PanelLeftClose, PanelLeftOpen, Moon, Maximize
 } from 'lucide-react';
 import { 
   fetchPlaylistInfo, fetchPlaylistItems, extractPlaylistId, 
@@ -131,6 +131,7 @@ export default function App() {
   const isPlayingRef = useRef(isPlaying);
   const volumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     const overlay = overlayRef.current;
@@ -140,7 +141,7 @@ export default function App() {
       e.preventDefault(); // Prevent page scroll
       if (!playerRef.current) return;
       
-      const delta = e.deltaY > 0 ? -1 : 1;
+      const delta = e.deltaY > 0 ? -1 : 1; // 1단위로 볼륨 조절
       setVolume(prev => {
         const newVolume = Math.max(0, Math.min(100, prev + delta));
         if (playerRef.current) {
@@ -381,6 +382,22 @@ export default function App() {
     // ⭐️ 불필요한 5(cued), -1(unstarted) 강제 재생 로직 삭제
   };
 
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      if (videoContainerRef.current && videoContainerRef.current.requestFullscreen) {
+        videoContainerRef.current.requestFullscreen().catch(err => {
+          console.error(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(err => {
+          console.error(`Error attempting to exit fullscreen: ${err.message}`);
+        });
+      }
+    }
+  };
+
   // ⭐️ 삭제: 기존에 있던 currentIndex를 감지해서 playVideo를 호출하던 불안정한 useEffect 삭제 완료
 
   const currentVideo = queue[currentIndex];
@@ -556,7 +573,7 @@ export default function App() {
             {/* Player Area Wrapper */}
             <div className="flex flex-col gap-4 2xl:gap-6 w-full relative">
               {/* Player Mockup */}
-              <div className="w-full aspect-video bg-brutal-black border-4 border-brutal-black flex items-center justify-center relative overflow-hidden shadow-[8px_8px_0_0_var(--color-brutal-black)]">
+              <div ref={videoContainerRef} className="w-full aspect-video bg-brutal-black border-4 border-brutal-black flex items-center justify-center relative overflow-hidden shadow-[8px_8px_0_0_var(--color-brutal-black)]">
                 {/* ⭐️ 변경: queue가 있고 initialVideoId가 세팅되었을 때만 렌더링 */}
                 {queue.length > 0 && initialVideoId ? (
                   <>
@@ -576,10 +593,10 @@ export default function App() {
                       className="absolute inset-0 w-full h-full"
                       iframeClassName="w-full h-full"
                     />
-                    {/* Overlay to capture wheel events over iframe */}
+                    {/* Overlay to capture wheel events over iframe (centered to avoid blocking YT controls) */}
                     <div 
                       ref={overlayRef}
-                      className="absolute top-0 left-0 right-0 bottom-[60px] z-10 cursor-pointer"
+                      className="absolute top-[60px] left-0 right-0 bottom-[60px] z-10 cursor-pointer"
                       onClick={() => {
                         if (isPlaying) {
                           playerRef.current?.pauseVideo();
@@ -587,6 +604,7 @@ export default function App() {
                           playerRef.current?.playVideo();
                         }
                       }}
+                      onDoubleClick={toggleFullscreen}
                     />
                     {/* Volume Indicator Overlay */}
                     {showVolumeIndicator && (
@@ -660,6 +678,13 @@ export default function App() {
                       className="p-3 2xl:p-4 bg-brutal-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-green disabled:opacity-30 transition-colors shadow-[2px_2px_0_0_var(--color-brutal-black)] 2xl:shadow-[4px_4px_0_0_var(--color-brutal-black)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
                     >
                       <SkipForward className="w-6 h-6 2xl:w-8 2xl:h-8" />
+                    </button>
+                    <button 
+                      onClick={toggleFullscreen}
+                      className="p-3 2xl:p-4 bg-brutal-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-green transition-colors shadow-[2px_2px_0_0_var(--color-brutal-black)] 2xl:shadow-[4px_4px_0_0_var(--color-brutal-black)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none hidden md:block"
+                      title="Fullscreen"
+                    >
+                      <Maximize className="w-6 h-6 2xl:w-8 2xl:h-8" />
                     </button>
                   </div>
                 </div>

@@ -851,9 +851,15 @@ export default function App() {
             {/* Thumbnail */}
             <div className="w-full aspect-square rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] mb-6 md:mb-8 lg:mb-10 bg-black/20">
               <img 
+                key={currentVideo.videoId}
                 src={`https://i.ytimg.com/vi/${currentVideo.videoId}/maxresdefault.jpg`} 
                 alt={currentVideo.title} 
                 className="w-full h-full object-cover" 
+                onLoad={(e) => {
+                  if (e.currentTarget.naturalWidth === 120 && e.currentTarget.src.includes('maxresdefault')) {
+                    e.currentTarget.src = currentVideo.thumbnail;
+                  }
+                }}
                 onError={(e) => {
                   if (e.currentTarget.src !== currentVideo.thumbnail) {
                     e.currentTarget.src = currentVideo.thumbnail;

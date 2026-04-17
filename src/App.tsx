@@ -240,6 +240,73 @@ export default function App() {
     return () => clearInterval(interval);
   }, [isPlaying, isPlayerReady]);
 
+  // Global Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      // Ignore if typing in input fields
+      if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+        return;
+      }
+      
+      if (!playerRef.current) return;
+
+      switch (e.key) {
+        case 'ArrowLeft': {
+          e.preventDefault();
+          const currentT = await playerRef.current.getCurrentTime();
+          if (currentT !== undefined) {
+            playerRef.current.seekTo(Math.max(0, currentT - 10), true);
+          }
+          break;
+        }
+        case 'ArrowRight': {
+          e.preventDefault();
+          const currentT = await playerRef.current.getCurrentTime();
+          const totalD = await playerRef.current.getDuration();
+          if (currentT !== undefined && totalD !== undefined) {
+            playerRef.current.seekTo(Math.min(totalD, currentT + 10), true);
+          }
+          break;
+        }
+        case 'ArrowUp': {
+          e.preventDefault();
+          setVolume(prev => {
+            const newVolume = Math.min(100, prev + 5);
+            if (playerRef.current) playerRef.current.setVolume(newVolume);
+            return newVolume;
+          });
+          setShowVolumeIndicator(true);
+          if (volumeTimeoutRef.current) clearTimeout(volumeTimeoutRef.current);
+          volumeTimeoutRef.current = setTimeout(() => setShowVolumeIndicator(false), 1500);
+          break;
+        }
+        case 'ArrowDown': {
+          e.preventDefault();
+          setVolume(prev => {
+            const newVolume = Math.max(0, prev - 5);
+            if (playerRef.current) playerRef.current.setVolume(newVolume);
+            return newVolume;
+          });
+          setShowVolumeIndicator(true);
+          if (volumeTimeoutRef.current) clearTimeout(volumeTimeoutRef.current);
+          volumeTimeoutRef.current = setTimeout(() => setShowVolumeIndicator(false), 1500);
+          break;
+        }
+        case ' ': // Spacebar
+          e.preventDefault();
+          if (isPlayingRef.current) {
+            playerRef.current.pauseVideo();
+          } else {
+            playerRef.current.playVideo();
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleAddPlaylist = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -587,7 +654,7 @@ export default function App() {
             <div className="flex flex-col gap-4 2xl:gap-6 w-full relative">
               {/* Player Mockup */}
               <div ref={videoContainerRef} className={cn(
-                "w-full bg-brutal-black border-4 border-brutal-black flex items-center justify-center relative overflow-hidden shadow-[8px_8px_0_0_var(--color-brutal-black)]",
+                "w-full bg-brutal-black border-4 border-brutal-black flex items-center justify-center relative overflow-hidden shadow-[8px_8px_0_0_var(--color-brutal-black)] fullscreen-clean",
                 isRadioMode ? "absolute w-[1px] h-[1px] opacity-0 pointer-events-none -z-50" : "aspect-video"
               )}>
                 {/* ⭐️ 변경: queue가 있고 initialVideoId가 세팅되었을 때만 렌더링 */}
@@ -800,6 +867,7 @@ export default function App() {
                         return;
                       }
                       setIsRadioMode(prev => !prev);
+                      setIsSettingsOpen(false);
                     }}
                     className={cn(
                       "w-full h-12 rounded-lg flex items-center justify-center transition-colors",

@@ -9,7 +9,7 @@ import {
   Play, Shuffle, Trash2, Plus, ListVideo, 
   SkipForward, SkipBack, Loader2, AlertCircle,
   Volume2, Pause, Repeat, Repeat1, PanelLeftClose, PanelLeftOpen, Moon, Maximize, Mouse, Settings, Radio, MoreVertical,
-  X, Heart, Cast, AudioLines
+  X, Heart, Cast, AudioLines, RefreshCw
 } from 'lucide-react';
 import { 
   fetchPlaylistInfo, fetchPlaylistItems, extractPlaylistId, 
@@ -109,6 +109,7 @@ export default function App() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [initialVideoId, setInitialVideoId] = useState<string | null>(null); // ⭐️ 추가: 초기 곡 ID 고정용
   const [isLoading, setIsLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isAutoplayEnabled, setIsAutoplayEnabled] = useState(true);
@@ -212,14 +213,39 @@ export default function App() {
   }, [playlists]);
 
   useEffect(() => {
-    // Background fetch for any playlists that don't have items cached yet
-    playlists.forEach(playlist => {
-      if (!playlist.items || playlist.items.length === 0) {
-        fetchPlaylistItems(playlist.id).then(items => {
-          setPlaylists(prev => prev.map(p => p.id === playlist.id ? { ...p, items } : p));
-        }).catch(console.error);
+    // ⭐️ 앱 로드 시 및 새로고침 시 모든 플레이리스트 자동 동기화 (최신 곡 반영)
+    let isMounted = true;
+    const syncPlaylists = async () => {
+      if (playlists.length === 0) return;
+      setIsSyncing(true);
+      try {
+        const updatedPlaylists = await Promise.all(
+          playlists.map(async (playlist) => {
+            try {
+              const info = await fetchPlaylistInfo(playlist.id);
+              const items = await fetchPlaylistItems(playlist.id);
+              return { ...info, items };
+            } catch (err) {
+              console.error('Failed to sync playlist', playlist.id, err);
+              return playlist; // 에러 시존 데이터 유지
+            }
+          })
+        );
+        if (isMounted) {
+          setPlaylists(updatedPlaylists);
+        }
+      } catch (e) {
+        console.error('Failed to sync playlists:', e);
+      } finally {
+        if (isMounted) setIsSyncing(false);
       }
-    });
+    };
+
+    syncPlaylists();
+    
+    return () => {
+      isMounted = false;
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount
 
@@ -574,7 +600,38 @@ export default function App() {
           {queue.length === 0 && (
             <div className="flex flex-col gap-2 2xl:gap-4 shrink-0 max-h-[260px] 2xl:max-h-[400px] w-full">
               <div className="text-sm 2xl:text-xl uppercase font-bold tracking-widest border-b-2 2xl:border-b-4 border-brutal-black pb-1 2xl:pb-2 flex justify-between items-center shrink-0">
-                <span>Your Playlists</span>
+                <div className="flex items-center gap-1">
+                  <span>Your Playlists</span>
+                  {playlists.length > 0 && (
+                    <button 
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        setIsSyncing(true);
+                        try {
+                          const updatedPlaylists = await Promise.all(
+                            playlists.map(async (playlist) => {
+                              try {
+                                const info = await fetchPlaylistInfo(playlist.id);
+                                const items = await fetchPlaylistItems(playlist.id);
+                                return { ...info, items };
+                              } catch (err) {
+                                return playlist;
+                              }
+                            })
+                          );
+                          setPlaylists(updatedPlaylists);
+                        } finally {
+                          setIsSyncing(false);
+                        }
+                      }}
+                      className="p-1 hover:bg-brutal-black hover:text-white transition-colors border-2 border-transparent hover:border-black rounded-full"
+                      title="Sync external changes"
+                      disabled={isSyncing}
+                    >
+                      <RefreshCw className={cn("w-4 h-4 2xl:w-5 2xl:h-5", isSyncing && "animate-spin")} />
+                    </button>
+                  )}
+                </div>
                 <span className="bg-brutal-black text-brutal-white px-2 py-0.5 2xl:px-3 2xl:py-1">{playlists.length}</span>
               </div>
               <div className="space-y-3 2xl:space-y-4 overflow-y-auto pr-2 custom-scrollbar py-2 flex-1 min-h-0">

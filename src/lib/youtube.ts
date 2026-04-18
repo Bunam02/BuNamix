@@ -43,7 +43,7 @@ export async function fetchPlaylistInfo(playlistId: string): Promise<PlaylistInf
 export async function fetchPlaylistItems(playlistId: string): Promise<PlaylistItem[]> {
   let items: PlaylistItem[] = [];
   let pageToken = '';
-  const maxPages = 20; // Limit to 1000 videos per playlist to avoid API quota exhaustion
+  const maxPages = 10; // Limit to 500 videos per playlist to massively improve fetch speed and avoid endless spinning
   let pages = 0;
 
   try {

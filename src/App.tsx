@@ -46,7 +46,7 @@ const QueueComponent = ({
       </div>
       <span className="bg-brutal-black text-brutal-white px-2 py-0.5 2xl:px-3 2xl:py-1">{currentIndex + 1} / {queue.length}</span>
     </div>
-    <div className="flex flex-col gap-3 2xl:gap-4 overflow-y-auto pr-2 custom-scrollbar py-2 flex-1">
+    <div className="flex flex-col gap-3 2xl:gap-4 overflow-y-auto px-6 -mx-6 py-6 -my-4 custom-scrollbar flex-1">
       {queue.map((item, index) => {
         if (index < currentIndex) return null;
 
@@ -57,7 +57,7 @@ const QueueComponent = ({
             key={`${item.id}-${index}`}
             onClick={() => playSpecificVideo(index)}
             className={cn(
-              "flex items-center gap-4 2xl:gap-6 p-2 2xl:p-4 border-2 2xl:border-4 cursor-pointer transition-all shrink-0",
+              "flex items-center gap-4 2xl:gap-6 p-2 2xl:p-4 border-2 2xl:border-4 cursor-pointer transition-all shrink-0 mx-2 mb-2",
               isPlaying 
                 ? "border-brutal-black bg-brutal-green shadow-[4px_4px_0_0_var(--color-brutal-black)] 2xl:shadow-[6px_6px_0_0_var(--color-brutal-black)]" 
                 : "border-brutal-black bg-brutal-white hover:bg-brutal-gray shadow-[4px_4px_0_0_var(--color-brutal-black)] 2xl:shadow-[6px_6px_0_0_var(--color-brutal-black)]"
@@ -79,8 +79,11 @@ const QueueComponent = ({
               </div>
             </div>
             <div className={cn(
-              "text-xl 2xl:text-3xl font-display shrink-0 px-2 2xl:px-4",
-              isPlaying ? "text-brutal-black" : "text-brutal-black/30"
+              "text-xl 2xl:text-3xl shrink-0 px-2 2xl:px-4 transition-all duration-300",
+              document.documentElement.classList.contains('ui-wood') ? "" : "font-display",
+              isPlaying 
+                ? (document.documentElement.classList.contains('ui-wood') ? "text-brutal-green font-medium tracking-wide text-sm" : "text-brutal-black") 
+                : "text-brutal-black/30 font-display"
             )}>
               {isPlaying ? "PLAYING" : `#${index + 1}`}
             </div>
@@ -127,11 +130,17 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isRadioMode, setIsRadioMode] = useState(false);
   const [isRadioShaking, setIsRadioShaking] = useState(false);
+  const [isDarkModeShaking, setIsDarkModeShaking] = useState(false);
+  const [showThemeWarning, setShowThemeWarning] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const saved = localStorage.getItem('theme');
     return (saved as 'light' | 'dark') || 'light';
   });
-  
+  const [uiMode, setUiMode] = useState<'retro' | 'wood' | 'acrobatic'>(() => {
+    const saved = localStorage.getItem('uiMode');
+    return (saved as 'retro' | 'wood' | 'acrobatic') || 'retro';
+  });
+
   const playerRef = useRef<any>(null);
   const autoplayRef = useRef(isAutoplayEnabled);
   const repeatModeRef = useRef(repeatMode);
@@ -189,6 +198,12 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
+    localStorage.setItem('uiMode', uiMode);
+    document.documentElement.classList.remove('ui-retro', 'ui-cyberpunk', 'ui-emotional', 'ui-modern', 'ui-futuristic', 'ui-neon', 'ui-cinema', 'ui-wood', 'ui-acrobatic', 'ui-brutal', 'ui-minimal', 'ui-glass');
+    document.documentElement.classList.add(`ui-${uiMode}`);
+  }, [uiMode]);
+
+  useEffect(() => {
     autoplayRef.current = isAutoplayEnabled;
   }, [isAutoplayEnabled]);
 
@@ -219,18 +234,17 @@ export default function App() {
       if (playlists.length === 0) return;
       setIsSyncing(true);
       try {
-        const updatedPlaylists = await Promise.all(
-          playlists.map(async (playlist) => {
-            try {
-              const info = await fetchPlaylistInfo(playlist.id);
-              const items = await fetchPlaylistItems(playlist.id);
-              return { ...info, items };
-            } catch (err) {
-              console.error('Failed to sync playlist', playlist.id, err);
-              return playlist; // 에러 시존 데이터 유지
-            }
-          })
-        );
+        const updatedPlaylists = [];
+        for (const playlist of playlists) {
+          try {
+            const info = await fetchPlaylistInfo(playlist.id);
+            const items = await fetchPlaylistItems(playlist.id);
+            updatedPlaylists.push({ ...info, items });
+          } catch (err) {
+            console.error('Failed to sync playlist', playlist.id, err);
+            updatedPlaylists.push(playlist); // 에러 시 존 데이터 유지
+          }
+        }
         if (isMounted) {
           setPlaylists(updatedPlaylists);
         }
@@ -557,7 +571,8 @@ export default function App() {
               />
             </a>
             <span className={cn(
-              "font-display leading-none tracking-tight flex items-center justify-center transition-all duration-500", 
+              "leading-none tracking-tight flex items-center justify-center transition-all duration-500", 
+              uiMode === 'wood' ? "font-semibold" : "font-display",
               queue.length > 0 ? "-mt-[20px] h-[50px]" : "-mt-[35px] h-[70px] 2xl:-mt-[50px] 2xl:h-[100px]"
             )}>
               BuNa<span style={{ color: '#89d07e' }}>Mix</span>
@@ -634,7 +649,7 @@ export default function App() {
                 </div>
                 <span className="bg-brutal-black text-brutal-white px-2 py-0.5 2xl:px-3 2xl:py-1">{playlists.length}</span>
               </div>
-              <div className="space-y-3 2xl:space-y-4 overflow-y-auto pr-2 custom-scrollbar py-2 flex-1 min-h-0">
+              <div className="space-y-3 2xl:space-y-4 overflow-y-auto px-6 -mx-6 py-6 -my-4 custom-scrollbar flex-1 min-h-0">
                 {playlists.length === 0 ? (
                   <div className="text-center py-8 2xl:py-12 text-brutal-black font-bold uppercase border-2 2xl:border-4 border-dashed border-brutal-black bg-brutal-gray 2xl:text-xl">
                     NO PLAYLISTS ADDED.
@@ -644,7 +659,7 @@ export default function App() {
                     <div 
                       key={playlist.id} 
                       onClick={() => handleShuffleAndPlay(playlist.id)}
-                      className="flex items-center gap-3 2xl:gap-5 bg-brutal-white border-2 2xl:border-4 border-brutal-black p-2 2xl:p-4 group transition-colors hover:bg-brutal-gray shadow-[4px_4px_0_0_var(--color-brutal-black)] 2xl:shadow-[6px_6px_0_0_var(--color-brutal-black)] cursor-pointer"
+                      className="flex items-center gap-3 2xl:gap-5 bg-brutal-white border-2 2xl:border-4 border-brutal-black p-2 2xl:p-4 mx-2 mb-2 group transition-colors hover:bg-brutal-gray shadow-[4px_4px_0_0_var(--color-brutal-black)] 2xl:shadow-[6px_6px_0_0_var(--color-brutal-black)] cursor-pointer"
                     >
                       <img 
                         src={playlist.thumbnail} 
@@ -778,7 +793,7 @@ export default function App() {
                           {currentVideo.channelTitle}
                         </div>
                       </div>
-                      <div className="flex items-center gap-4 2xl:gap-6 shrink-0 h-[52px] 2xl:h-[72px] p-0 m-0">
+                      <div className="flex items-center gap-4 2xl:gap-6 shrink-0 h-[52px] 2xl:h-[72px] px-6 -mx-6 py-8 -my-8">
                         <button 
                           onClick={handleShuffle}
                           className="p-3 2xl:p-4 bg-brutal-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-green transition-colors shadow-[2px_2px_0_0_var(--color-brutal-black)] 2xl:shadow-[4px_4px_0_0_var(--color-brutal-black)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
@@ -885,17 +900,41 @@ export default function App() {
               <div className="grid grid-cols-3 gap-x-3 gap-y-4">
                 
                 {/* Dark Mode Toggle */}
-                <div className="flex flex-col items-center gap-2">
-                  <button
-                    onClick={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
+                <div className="flex flex-col items-center gap-2 relative">
+                  <motion.button
+                    animate={isDarkModeShaking ? { x: [-3, 3, -3, 3, 0] } : {}}
+                    transition={{ duration: 0.3 }}
+                    onClick={() => {
+                      if (uiMode === 'wood') {
+                        setIsDarkModeShaking(true);
+                        setShowThemeWarning(true);
+                        setTimeout(() => setIsDarkModeShaking(false), 300);
+                        setTimeout(() => setShowThemeWarning(false), 2000);
+                        return;
+                      }
+                      setTheme(prev => prev === 'light' ? 'dark' : 'light');
+                    }}
                     className={cn(
                       "w-full h-12 rounded-lg flex items-center justify-center transition-colors",
                       theme === 'dark' ? "bg-[#4cc2ff] text-black" : "bg-white/10 text-white hover:bg-white/20 border border-white/10"
                     )}
                   >
                     <Moon className="w-5 h-5" />
-                  </button>
+                  </motion.button>
                   <span className="text-xs text-white font-medium">다크 모드</span>
+                  
+                  <AnimatePresence>
+                    {showThemeWarning && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-red-500/90 text-white text-[11px] px-2.5 py-1 rounded-md shadow-lg pointer-events-none"
+                      >
+                        해당 테마에서는 지원되지 않는 기능입니다
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {/* Wheel Volume Toggle */}
@@ -946,11 +985,37 @@ export default function App() {
       {!isRadioMode && (
         <button
           onClick={() => setIsSettingsOpen(prev => !prev)}
-          className="fixed bottom-4 right-4 2xl:bottom-8 2xl:right-8 p-2 2xl:p-3 bg-brutal-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-gray transition-colors z-50 rounded-full"
+          className="fixed bottom-4 right-4 2xl:bottom-8 2xl:right-8 p-2 2xl:p-3 bg-brutal-white border-2 2xl:border-4 border-brutal-black hover:bg-brutal-gray transition-colors z-50 rounded-full shadow-[4px_4px_0_0_var(--color-brutal-black)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none"
           title="Settings"
         >
           <Settings className="w-5 h-5 2xl:w-6 2xl:h-6 text-brutal-black" />
         </button>
+      )}
+
+      {/* UI Selector Bottom Tab */}
+      {!isRadioMode && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex items-center bg-brutal-white border-2 2xl:border-4 border-brutal-black rounded-full overflow-hidden shadow-[4px_4px_0_0_var(--color-brutal-black)] 2xl:shadow-[6px_6px_0_0_var(--color-brutal-black)] font-bold text-xs sm:text-sm 2xl:text-base">
+          <button 
+            onClick={() => setUiMode('retro')}
+            className={cn("px-4 py-2 sm:px-6 2xl:px-8 2xl:py-3 transition-colors", uiMode === 'retro' ? "bg-brutal-green text-brutal-black" : "hover:bg-brutal-gray text-brutal-black")}
+          >
+            1
+          </button>
+          <div className="w-[2px] 2xl:w-[4px] self-stretch bg-brutal-black" />
+          <button 
+            onClick={() => setUiMode('wood')}
+            className={cn("px-4 py-2 sm:px-6 2xl:px-8 2xl:py-3 transition-colors", uiMode === 'wood' ? "bg-brutal-green text-brutal-black" : "hover:bg-brutal-gray text-brutal-black")}
+          >
+            2
+          </button>
+          <div className="w-[2px] 2xl:w-[4px] self-stretch bg-brutal-black" />
+          <button 
+            onClick={() => setUiMode('acrobatic')}
+            className={cn("px-4 py-2 sm:px-6 2xl:px-8 2xl:py-3 transition-colors", uiMode === 'acrobatic' ? "bg-brutal-green text-brutal-black" : "hover:bg-brutal-gray text-brutal-black")}
+          >
+            3
+          </button>
+        </div>
       )}
 
       {/* Full-Screen Radio Mode Overlay */}

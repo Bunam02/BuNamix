@@ -18,7 +18,7 @@ export interface PlaylistInfo {
 }
 
 export async function fetchPlaylistInfo(playlistId: string): Promise<PlaylistInfo> {
-  const url = `https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&id=${playlistId}&key=${API_KEY}`;
+  const url = `/api/youtube/playlists?id=${playlistId}&key=${API_KEY}`;
   const response = await fetch(url);
   const data = await response.json();
 
@@ -48,7 +48,7 @@ export async function fetchPlaylistItems(playlistId: string): Promise<PlaylistIt
 
   try {
     do {
-      const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${API_KEY}${pageToken ? '&pageToken=' + pageToken : ''}`;
+      const url = `/api/youtube/playlistItems?playlistId=${playlistId}&key=${API_KEY}${pageToken ? '&pageToken=' + pageToken : ''}`;
       const response = await fetch(url);
       const data = await response.json();
 

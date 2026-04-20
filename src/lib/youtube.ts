@@ -1,4 +1,4 @@
-const API_KEY = 'AIzaSyAnaqx4LugYb2tPswMggr6fjSFCZcL2aOw';
+const API_KEY = 'AIzaSyCQ5twwzCSe1NKL14MQBmOa8LJx_7rPzsU';
 
 export interface PlaylistItem {
   id: string;
@@ -18,12 +18,13 @@ export interface PlaylistInfo {
 }
 
 export async function fetchPlaylistInfo(playlistId: string): Promise<PlaylistInfo> {
-  const url = `/api/youtube/playlists?id=${playlistId}&key=${API_KEY}`;
+  const url = `https://www.googleapis.com/youtube/v3/playlists?part=snippet,contentDetails&id=${playlistId}&key=${API_KEY}`;
   const response = await fetch(url);
   
   const contentType = response.headers.get("content-type");
   if (!contentType || !contentType.includes("application/json")) {
-    throw new Error('API server is temporarily unavailable or returned an invalid response. Please try again.');
+    const textDesc = await response.text();
+    throw new Error(`API server returned non-JSON (${contentType}): ${textDesc.slice(0, 100)}`);
   }
 
   const data = await response.json();
@@ -54,12 +55,15 @@ export async function fetchPlaylistItems(playlistId: string): Promise<PlaylistIt
 
   try {
     do {
-      const url = `/api/youtube/playlistItems?playlistId=${playlistId}&key=${API_KEY}${pageToken ? '&pageToken=' + pageToken : ''}`;
+      let url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${API_KEY}`;
+      if (pageToken) url += `&pageToken=${pageToken}`;
+      
       const response = await fetch(url);
       
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        throw new Error('API server is temporarily unavailable or returned an invalid response. Please try again.');
+        const textDesc = await response.text();
+        throw new Error(`API server returned non-JSON (${contentType}): ${textDesc.slice(0, 100)}`);
       }
 
       const data = await response.json();
